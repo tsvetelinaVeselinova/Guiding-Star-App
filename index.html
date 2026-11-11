@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050816">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Звездно небе">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100'%3E%3Crect x='-50' y='-50' width='100' height='100' rx='22' fill='%23050816'/%3E%3Cpath d='M0,-40 C4,-12 12,-4 40,0 C12,4 4,12 0,40 C-4,12 -12,4 -40,0 C-12,-4 -4,-12 0,-40Z' fill='%23ffd86b'/%3E%3C/svg%3E">
+<title>Звездно небе от хора</title>
+<style>
+:root{--bg:#050816;--panel:#0e1430;--line:#26305c;--text:#e9ecff;--dim:#9aa3d6;--gold:#ffd86b;--blue:#8fb4ff;--danger:#ff7b8a}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
+  background:radial-gradient(ellipse 80% 50% at 20% 10%,#1a1f5a55,transparent 70%),radial-gradient(ellipse 70% 45% at 85% 75%,#4a1a5a44,transparent 70%),linear-gradient(#050816,#0a1033 60%,#120a2e);background-attachment:fixed}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px 16px 6px}
+h1{font-size:1.25rem;margin:0;color:var(--gold);display:flex;align-items:center;gap:8px}
+h1 svg{width:26px;height:26px;filter:drop-shadow(0 0 6px var(--gold))}
+.bar{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:9px 16px}
+button:hover{border-color:var(--blue)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button.primary{background:var(--gold);color:#1a1400;border-color:var(--gold);font-weight:600}
+button.small{padding:5px 11px;font-size:.85rem}
+button.danger{color:var(--danger)}
+.search{padding:6px 16px 4px}
+input,textarea{width:100%;font:inherit;color:var(--text);background:#080d26;border:1px solid var(--line);border-radius:10px;padding:10px}
+textarea{min-height:70px;resize:vertical}
+label{display:block;margin:10px 0 4px;color:var(--dim);font-size:.9rem}
+
+/* Небе */
+#sky{position:relative;margin:6px 8px 24px;border-radius:22px;overflow:hidden;border:1px solid #1c2552;
+  background:radial-gradient(ellipse at 50% 120%,#2a1b5e66,transparent 60%);min-height:420px}
+#bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#milky{position:absolute;left:-10%;right:-10%;top:30%;height:30%;transform:rotate(-14deg);
+  background:radial-gradient(ellipse at center,#9fb4ff22,transparent 65%);filter:blur(18px);pointer-events:none}
+.msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--dim);padding:24px;line-height:1.7;pointer-events:none}
+.pt{position:absolute;transform:translate(-50%,-50%);background:none;border:0;padding:0;border-radius:50%;display:block}
+.pt:hover{border:0}
+.pt .s{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 6px var(--c)) drop-shadow(0 0 14px var(--c))}
+.pt .s path{fill:var(--c)}
+.pt .s .core{fill:#fff}
+.pt.dim{opacity:.18}
+.pt.sel .s{filter:drop-shadow(0 0 10px #fff) drop-shadow(0 0 22px var(--c))}
+.sat{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--c);box-shadow:0 0 6px var(--c);pointer-events:none;opacity:.9}
+.tag{position:absolute;transform:translate(-50%,-100%);font-size:.78rem;color:#fff;white-space:nowrap;pointer-events:none;text-shadow:0 0 6px #000,0 0 3px #000}
+#card{position:absolute;z-index:5;width:min(250px,80%);background:#0e1430ee;backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 8px 30px #000a;display:none}
+#card b{display:block;color:var(--gold);font-size:1.02rem}
+#card .m{color:var(--dim);font-size:.85rem;margin-top:2px}
+#card .h{margin-top:6px;font-size:.9rem;line-height:1.35}
+#card .acts{display:flex;gap:6px;margin-top:10px}
+.shoot{position:absolute;top:8%;left:70%;width:90px;height:2px;background:linear-gradient(90deg,#fff,transparent);transform:rotate(-30deg);opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:no-preference){
+  .pt .s{animation:tw 4s ease-in-out infinite}
+  .pt:nth-child(3n) .s{animation-delay:-1.3s}.pt:nth-child(3n+1) .s{animation-delay:-2.6s}
+  @keyframes tw{50%{transform:scale(.88) rotate(8deg)}}
+  .shoot{animation:sh 12s 3s ease-out infinite}
+  @keyframes sh{0%{opacity:0;transform:translate(0,0) rotate(-30deg)}2%{opacity:1}8%{opacity:0;transform:translate(-220px,127px) rotate(-30deg)}100%{opacity:0}}
+}
+
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);width:min(560px,94vw);max-height:92vh;padding:18px;overflow:auto}
+dialog::backdrop{background:rgba(2,4,14,.75)}
+dialog h2{margin:0 0 6px;color:var(--gold);font-size:1.15rem}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.info p{margin:4px 0;color:var(--dim)}
+.info a{color:var(--blue)}
+.sec{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+.sec h3{margin:0 0 8px;font-size:1rem;color:var(--blue)}
+.contact{background:#080d26;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.contact b{display:block}
+.contact .meta{color:var(--dim);font-size:.88rem;margin-top:2px}
+.contact .acts{display:flex;gap:6px;margin-top:8px}
+.contact a,.meta a{color:var(--blue)}
+.kw{color:var(--gold);font-size:.82rem}
+.hint{color:var(--dim);font-size:.85rem}
+</style>
+</head>
+<body>
+<header>
+  <h1><svg viewBox="-50 -50 100 100" aria-hidden="true"><path fill="#ffd86b" d="M0,-48 C4,-14 14,-4 48,0 C14,4 4,14 0,48 C-4,14 -14,4 -48,0 C-14,-4 -4,-14 0,-48Z"/><path fill="#fff6d6" transform="rotate(45) scale(.5)" d="M0,-48 C4,-14 14,-4 48,0 C14,4 4,14 0,48 C-4,14 -14,4 -48,0 C-14,-4 -4,-14 0,-48Z"/></svg>Звездно небе от хора</h1>
+  <div class="bar">
+    <button class="primary" id="addBtn">＋ Добави</button>
+    <button id="exportBtn">⬇ Копие</button>
+    <button id="importBtn">⬆ Възстанови</button>
+    <input type="file" id="file" accept="application/json,.json" hidden>
+  </div>
+</header>
+<div class="search"><input id="q" type="search" placeholder="Търси по име, област, град, ключова дума…" aria-label="Търсене"></div>
+
+<main id="sky">
+  <svg id="bg" aria-hidden="true"></svg>
+  <div id="milky"></div>
+  <div class="shoot"></div>
+  <div id="layer"></div>
+  <div id="card"></div>
+</main>
+
+<dialog id="formDlg">
+  <form id="form" method="dialog">
+    <h2 id="formTitle">Нова звезда</h2>
+    <label for="f_name">Име *</label><input id="f_name" required>
+    <label for="f_field">Област *</label><input id="f_field" required>
+    <label for="f_city">Град</label><input id="f_city">
+    <label for="f_help">С какво може да помогне? *</label><textarea id="f_help" required></textarea>
+    <label for="f_kw">Ключови думи (със запетая)</label><input id="f_kw">
+    <label for="f_phone">Телефон</label><input id="f_phone" type="tel">
+    <label for="f_email">Имейл</label><input id="f_email" type="email">
+    <label for="f_notes">Бележки</label><textarea id="f_notes"></textarea>
+    <div class="row">
+      <button type="button" id="cancelForm">Отказ</button>
+      <button class="primary" type="submit">✦ Запази</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="detailDlg"><div id="detail"></div></dialog>
+
+<script>
+(function(){
+"use strict";
+var KEY="guidingStar.v2";
+var OLD_KEYS=["guidingStar","stars","starSky","guiding-star","people"];
+var COLORS=["#ffd86b","#8fb4ff","#ff9ec4","#7ef0c8","#c3a2ff","#ffb26b"];
+var SPARK="M0,-48 C4,-14 14,-4 48,0 C14,4 4,14 0,48 C-4,14 -14,4 -48,0 C-14,-4 -4,-14 0,-48Z";
+var people=load();
+var ctx=null,openId=null,selId=null;
+var $=function(id){return document.getElementById(id)};
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function kwList(s){return String(s||"").split(",").map(function(x){return x.trim()}).filter(Boolean)}
+function hash(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0}return Math.abs(h)}
+function colorOf(p){return COLORS[hash((p.field||"").toLowerCase())%COLORS.length]}
+
+function normalize(p){
+  return{id:p.id||uid(),name:p.name||"",field:p.field||"",city:p.city||"",help:p.help||"",
+    keywords:Array.isArray(p.keywords)?p.keywords:kwList(p.keywords),
+    phone:p.phone||"",email:p.email||"",notes:p.notes||"",
+    x:typeof p.x==="number"?p.x:null,y:typeof p.y==="number"?p.y:null,
+    contacts:Array.isArray(p.contacts)?p.contacts.map(normalize):[]};
+}
+function load(){
+  var list=[];
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(raw){list=JSON.parse(raw).map(normalize)}
+    else for(var i=0;i<OLD_KEYS.length;i++){
+      var o=localStorage.getItem(OLD_KEYS[i]);
+      if(o){var a=JSON.parse(o);if(Array.isArray(a)&&a.length&&a[0]&&a[0].name){list=a.map(normalize);break}}
+    }
+  }catch(e){}
+  placeAll(list);return list;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(people))}catch(e){alert("Не може да се запази в браузъра.")}}
+
+/* Позиции: нова звезда отива на най-свободното място от няколко опита */
+function placeAll(list){list.forEach(function(p,i){if(p.x==null)place(p,list.slice(0,i))})}
+function place(p,others){
+  var best=null,bd=-1;
+  for(var t=0;t<60;t++){
+    var x=8+Math.random()*84,y=10+Math.random()*80,m=1e9;
+    others.forEach(function(o){if(o.x==null)return;var dx=(o.x-x)*1.6,dy=o.y-y;m=Math.min(m,dx*dx+dy*dy)});
+    if(m>bd){bd=m;best={x:x,y:y}}
+  }
+  p.x=best.x;p.y=best.y;
+}
+function skyHeight(){
+  var base=Math.max(420,Math.round(window.innerHeight*.62));
+  return Math.min(1400,base+Math.max(0,people.length-14)*28);
+}
+
+/* Фонови звезди (детерминирани) */
+function drawBg(){
+  var w=$("sky").clientWidth,h=$("sky").clientHeight,s=7,out="";
+  function r(){s=(s*16807)%2147483647;return s/2147483647}
+  var n=Math.round(w*h/2600);
+  for(var i=0;i<n;i++){
+    var x=r()*w,y=r()*h,rad=.4+r()*1.1,o=.25+r()*.6;
+    out+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+rad.toFixed(2)+'" fill="#fff" opacity="'+o.toFixed(2)+'"/>';
+  }
+  $("bg").setAttribute("viewBox","0 0 "+w+" "+h);$("bg").innerHTML=out;
+}
+
+function matches(x,q){return[x.name,x.field,x.city,x.help,x.notes,x.keywords.join(" ")].join(" ").toLowerCase().indexOf(q)>-1}
+function matchInfo(p,q){
+  if(!q)return{hit:true};
+  if(matches(p,q))return{hit:true};
+  var c=p.contacts.filter(function(c){return matches(c,q)})[0];
+  return c?{hit:true,via:c}:{hit:false};
+}
+
+function renderSky(){
+  var sky=$("sky"),q=$("q").value.trim().toLowerCase(),layer=$("layer");
+  sky.style.height=skyHeight()+"px";drawBg();
+  var html="",oldMsg=sky.querySelector(".msg");if(oldMsg)oldMsg.remove();
+  if(!people.length){
+    layer.innerHTML="";
+    var m=document.createElement("div");m.className="msg";
+    m.innerHTML="Небето е празно.<br>Натиснете „＋ Добави“ и запалете първата си звезда ✨";
+    sky.appendChild(m);hideCard();return;
+  }
+  var hits=0,labels=0;
+  people.forEach(function(p){
+    var mi=matchInfo(p,q);if(mi.hit)hits++;
+    var size=Math.min(46,24+p.contacts.length*3);
+    var c=colorOf(p);
+    var cls="pt"+(q&&!mi.hit?" dim":"")+(selId===p.id?" sel":"");
+    html+='<button class="'+cls+'" data-id="'+esc(p.id)+'" aria-label="'+esc(p.name)+', '+esc(p.field)+'" style="left:'+p.x+'%;top:'+p.y+'%;width:'+size+'px;height:'+size+'px;--c:'+c+'">'+
+      '<svg class="s" viewBox="-50 -50 100 100" aria-hidden="true"><path d="'+SPARK+'"/><path transform="rotate(45) scale(.5)" d="'+SPARK+'" opacity=".75"/><circle class="core" r="7"/></svg></button>';
+    // спътници = познати
+    var n=Math.min(p.contacts.length,12),orbit=size/2+10;
+    for(var i=0;i<n;i++){
+      var a=(i/n)*Math.PI*2+hash(p.id)%6;
+      html+='<span class="sat" style="left:calc('+p.x+'% + '+(Math.cos(a)*orbit).toFixed(1)+'px);top:calc('+p.y+'% + '+(Math.sin(a)*orbit).toFixed(1)+'px);--c:'+c+'"></span>';
+    }
+    // етикети: при търсене за съвпаденията, иначе за избраната
+    if((q&&mi.hit&&labels<14)||(!q&&selId===p.id&&false)){
+      labels++;
+      html+='<span class="tag" style="left:'+p.x+'%;top:calc('+p.y+'% - '+(size/2+6)+'px)">'+esc(mi.via?mi.via.name+" ← "+p.name:p.name)+'</span>';
+    }
+  });
+  layer.innerHTML=html;
+  if(q&&!hits){var m2=document.createElement("div");m2.className="msg";m2.textContent="Няма звезди за това търсене.";sky.appendChild(m2)}
+  if(selId)showCard(selId);else hideCard();
+}
+
+function hideCard(){$("card").style.display="none"}
+function showCard(id){
+  var p=people.find(function(x){return x.id===id});if(!p){hideCard();return}
+  var card=$("card");
+  card.innerHTML='<b>✦ '+esc(p.name)+'</b><div class="m">'+esc(p.field)+(p.city?" · "+esc(p.city):"")+'</div>'+
+    (p.help?'<div class="h">'+esc(p.help.length>110?p.help.slice(0,110)+"…":p.help)+'</div>':"")+
+    '<div class="acts"><button class="small primary" data-act="open">Отвори'+(p.contacts.length?" ("+p.contacts.length+" познати)":"")+'</button><button class="small" data-act="x">✕</button></div>';
+  card.style.display="block";
+  var sky=$("sky"),W=sky.clientWidth,H=sky.clientHeight,cw=card.offsetWidth,ch=card.offsetHeight;
+  var px=p.x/100*W,py=p.y/100*H;
+  var left=Math.max(8,Math.min(W-cw-8,px-cw/2));
+  var top=py-ch-30;if(top<8)top=py+30;
+  card.style.left=left+"px";card.style.top=Math.max(8,Math.min(H-ch-8,top))+"px";
+}
+
+$("layer").addEventListener("click",function(e){
+  var b=e.target.closest(".pt");if(!b)return;
+  selId=selId===b.getAttribute("data-id")?null:b.getAttribute("data-id");renderSky();
+});
+$("sky").addEventListener("click",function(e){
+  if(e.target.closest(".pt")||e.target.closest("#card"))return;
+  if(selId){selId=null;renderSky()}
+});
+$("card").addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");if(!b)return;
+  if(b.getAttribute("data-act")==="x"){selId=null;renderSky()}
+  else if(b.getAttribute("data-act")==="open"){openId=selId;renderDetail();$("detailDlg").showModal()}
+});
+
+/* Детайли + познати */
+function contactHtml(c){
+  var kws=c.keywords.length?'<div class="kw">'+c.keywords.map(esc).join(", ")+'</div>':"";
+  var links=[];
+  if(c.phone)links.push('<a href="tel:'+esc(c.phone)+'">'+esc(c.phone)+'</a>');
+  if(c.email)links.push('<a href="mailto:'+esc(c.email)+'">'+esc(c.email)+'</a>');
+  return'<div class="contact"><b>✧ '+esc(c.name)+'</b><div class="meta">'+esc(c.field)+(c.city?" · "+esc(c.city):"")+'</div>'+
+    (c.help?'<div class="meta">'+esc(c.help)+'</div>':"")+kws+
+    (links.length?'<div class="meta">'+links.join(" · ")+'</div>':"")+
+    (c.notes?'<div class="meta">📝 '+esc(c.notes)+'</div>':"")+
+    '<div class="acts"><button class="small" data-act="editContact" data-cid="'+esc(c.id)+'">Редактирай</button>'+
+    '<button class="small danger" data-act="delContact" data-cid="'+esc(c.id)+'">Изтрий</button></div></div>';
+}
+function renderDetail(){
+  var p=people.find(function(x){return x.id===openId});
+  if(!p){$("detailDlg").close();return}
+  var links=[];
+  if(p.phone)links.push('<a href="tel:'+esc(p.phone)+'">'+esc(p.phone)+'</a>');
+  if(p.email)links.push('<a href="mailto:'+esc(p.email)+'">'+esc(p.email)+'</a>');
+  $("detail").innerHTML=
+    '<h2>✦ '+esc(p.name)+'</h2><div class="info"><p>'+esc(p.field)+(p.city?" · "+esc(p.city):"")+'</p><p>'+esc(p.help)+'</p>'+
+    (p.keywords.length?'<p class="kw">'+p.keywords.map(esc).join(", ")+'</p>':"")+
+    (links.length?'<p>'+links.join(" · ")+'</p>':"")+(p.notes?'<p>📝 '+esc(p.notes)+'</p>':"")+'</div>'+
+    '<div class="row" style="justify-content:flex-start;margin-top:10px"><button class="small" data-act="editPerson">Редактирай</button><button class="small danger" data-act="delPerson">Изтрий</button></div>'+
+    '<div class="sec"><h3>Познати на '+esc(p.name)+' ('+p.contacts.length+')</h3>'+
+    (p.contacts.length?p.contacts.map(contactHtml).join(""):'<p class="hint">Още няма добавени познати. Добавете хора, които '+esc(p.name)+' познава и с какво могат да помогнат.</p>')+
+    '<button class="primary" data-act="addContact">＋ Добави познат</button></div>'+
+    '<div class="row"><button data-act="close">Затвори</button></div>';
+}
+
+/* Форма */
+function openForm(mode,pid,cid){
+  ctx={mode:mode,personId:pid||null,contactId:cid||null};
+  $("form").reset();
+  var data=null,title="Нова звезда";
+  if(mode==="person"&&pid){data=people.find(function(x){return x.id===pid});title="Редакция на звезда"}
+  if(mode==="contact"){
+    var p=people.find(function(x){return x.id===pid});
+    if(cid){data=p.contacts.find(function(x){return x.id===cid});title="Редакция на познат"}else title="Нов познат на "+p.name;
+  }
+  $("formTitle").textContent=title;
+  if(data){$("f_name").value=data.name;$("f_field").value=data.field;$("f_city").value=data.city;$("f_help").value=data.help;
+    $("f_kw").value=data.keywords.join(", ");$("f_phone").value=data.phone;$("f_email").value=data.email;$("f_notes").value=data.notes}
+  $("formDlg").showModal();
+}
+$("form").addEventListener("submit",function(e){
+  e.preventDefault();
+  var rec={name:$("f_name").value.trim(),field:$("f_field").value.trim(),city:$("f_city").value.trim(),help:$("f_help").value.trim(),
+    keywords:kwList($("f_kw").value),phone:$("f_phone").value.trim(),email:$("f_email").value.trim(),notes:$("f_notes").value.trim()};
+  if(!rec.name||!rec.field||!rec.help)return;
+  if(ctx.mode==="person"){
+    if(ctx.personId){Object.assign(people.find(function(x){return x.id===ctx.personId}),rec)}
+    else{rec.id=uid();rec.contacts=[];var np=normalize(rec);place(np,people);people.push(np);selId=np.id}
+  }else{
+    var parent=people.find(function(x){return x.id===ctx.personId});
+    if(ctx.contactId){Object.assign(parent.contacts.find(function(x){return x.id===ctx.contactId}),rec)}
+    else{rec.id=uid();rec.contacts=[];parent.contacts.push(normalize(rec))}
+  }
+  save();$("formDlg").close();renderSky();
+  if(openId&&$("detailDlg").open)renderDetail();
+});
+$("cancelForm").onclick=function(){$("formDlg").close()};
+$("addBtn").onclick=function(){openForm("person")};
+$("q").addEventListener("input",function(){selId=null;renderSky()});
+
+$("detailDlg").addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");if(!b)return;
+  var act=b.getAttribute("data-act"),cid=b.getAttribute("data-cid");
+  var p=people.find(function(x){return x.id===openId});
+  if(act==="close")$("detailDlg").close();
+  else if(act==="addContact")openForm("contact",openId);
+  else if(act==="editContact")openForm("contact",openId,cid);
+  else if(act==="editPerson")openForm("person",openId);
+  else if(act==="delContact"){if(confirm("Да изтрия ли този познат?")){p.contacts=p.contacts.filter(function(c){return c.id!==cid});save();renderDetail();renderSky()}}
+  else if(act==="delPerson"){if(confirm("Да изтрия ли "+p.name+" и всичките му познати?")){people=people.filter(function(x){return x.id!==openId});selId=null;save();$("detailDlg").close();renderSky()}}
+});
+
+/* Копие / Възстановяване */
+$("exportBtn").onclick=function(){
+  var blob=new Blob([JSON.stringify(people,null,2)],{type:"application/json"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="zvezdno-nebe-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+};
+$("importBtn").onclick=function(){$("file").click()};
+$("file").addEventListener("change",function(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var data=JSON.parse(r.result);
+      if(!Array.isArray(data))data=data.stars||data.people||data.data;
+      if(!Array.isArray(data))throw new Error("формат");
+      if(!confirm("Да заменя ли текущите данни с "+data.length+" записа от файла?"))return;
+      people=data.map(normalize);placeAll(people);selId=null;save();renderSky();
+    }catch(err){alert("Файлът не може да се прочете.")}
+  };
+  r.readAsText(f);e.target.value="";
+});
+
+var rz;window.addEventListener("resize",function(){clearTimeout(rz);rz=setTimeout(renderSky,150)});
+save();renderSky();
+})();
+</script>
+</body>
+</html>
